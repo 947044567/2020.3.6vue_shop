@@ -23,7 +23,7 @@
       <el-aside :width="isCollapse?'64px':'200px'">
         <div class="toggle-button" @click="toggleCollapse">|||</div>
         <!-- 侧边栏菜单区域 -->
-        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse="isCollapse" :collapse-transition="false" router>
+        <el-menu background-color="#333744" text-color="#fff" active-text-color="#409bff" unique-opened :collapse="isCollapse" :collapse-transition="false" router :default-active='defaultActive'>
           <!-- 一级菜单 -->
           <el-submenu :index="item.id+''" v-for="item in menuList" :key="item.id">
             <template slot="title">
@@ -62,6 +62,18 @@ export default {
         145: 'iconfont icon-baobiao'
       },
       isCollapse: false
+    }
+  },
+  computed: {
+    defaultActive () {
+      // 如何获取当前路由的相关信息？this.$route
+      // this.$route 拿到当前路由相关的信息对象（路径，参数）
+      // this.$router 拿到整个路由实例 => this.$router.push(...)
+      // console.log(this.$route)
+
+      // /roles => roles
+      // return this.$route.path.slice(1).split('-')[0]
+      return this.$route.path
     }
   },
   created() {
