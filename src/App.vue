@@ -1,6 +1,7 @@
 <template>
   <div id="app">
-    根组件
+    <!-- 路由站位符 -->
+    <router-view></router-view>
   </div>
 </template>
 
