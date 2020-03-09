@@ -102,7 +102,6 @@ export default {
       })
     },
     async submitForm(ruleForm) {
-      console.log(ruleForm)
       try {
         await this.$refs[ruleForm].validate()
         const { data: res } = await this.$axios.post('login', this.form)
