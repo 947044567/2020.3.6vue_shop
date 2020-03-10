@@ -25,6 +25,25 @@ axios.interceptors.request.use(function (config) {
 Vue.prototype.$axios = axios
 Vue.config.productionTip = false
 
+// // 添加响应拦截器
+// axios.interceptors.response.use(function (response) {
+//   // 对响应数据做点什么
+//   // response = response.data
+//   // 统一对响应进行处理，如果状态码是401，认为token过期或者无效token，此时：统一拦截到登录
+//   console.log(response)
+//   // if (response.meta === 401) {
+//   //   response.meta.msg = '尊敬的用户，您的登录状态已过期，请重新登录'
+//   //   // 清除无效的token
+//   //   window.sessionStorage.removeItem('token')
+//   //   // 拦截到登录
+//   //   router.push('/login')
+//   // }
+//   // return response
+// }, function (error) {
+//   // 对响应错误做点什么
+//   return Promise.reject(error)
+// })
+
 new Vue({
   router,
   render: h => h(App)
