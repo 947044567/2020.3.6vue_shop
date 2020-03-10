@@ -62,7 +62,7 @@
             ></el-button>
             <!-- 分配角色按钮 -->
             <el-button
-              @click="showAssignDialog(row)"
+              @click="showRoleDialog(row)"
               size="small"
               plain
               icon="el-icon-setting"
@@ -84,12 +84,7 @@
     </el-card>
     <!-- 添加用户的对话框 -->
     <el-dialog title="添加用户" :visible.sync="addDialogVisible" width="50%" @close="addDialogClosed">
-      <el-form
-        :model="addForm"
-        :rules="addFormRules"
-        ref="addFormRef"
-        label-width="70px"
-      >
+      <el-form :model="addForm" :rules="addFormRules" ref="addFormRef" label-width="70px">
         <el-form-item label="用户名" prop="username">
           <el-input v-model="addForm.username"></el-input>
         </el-form-item>
@@ -110,12 +105,7 @@
     </el-dialog>
     <!-- 修改用户的对话框 -->
     <el-dialog title="修改用户" :visible.sync="editDialogVisible" width="50%" @close="editDialogClosed">
-      <el-form
-        :model="editForm"
-        :rules="editFormRules"
-        ref="editFormRef"
-        label-width="70px"
-      >
+      <el-form :model="editForm" :rules="editFormRules" ref="editFormRef" label-width="70px">
         <el-form-item label="用户名">
           <el-input v-model="editForm.username" disabled></el-input>
         </el-form-item>
@@ -129,6 +119,28 @@
       <span slot="footer" class="dialog-footer">
         <el-button @click="editDialogVisible = false">取 消</el-button>
         <el-button type="primary" @click="editUserInfo">确 定</el-button>
+      </span>
+    </el-dialog>
+    <!-- 分配角色的对话框 -->
+    <el-dialog title="分配角色" :visible.sync="roleDialogVisible" width="50%" @close="roleDialogClosed">
+      <div>
+        <p class="mgBottom">当前的用户：{{userInfo.username}}</p>
+        <p class="mgBottom">当前的角色：{{userInfo.role_name}}</p>
+        <p>
+          分配新角色：
+          <el-select v-model="selectedRoleId" placeholder="请选择">
+            <el-option
+              v-for="item in rolesList"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id"
+            ></el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="roleDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="rolesInfo">确 定</el-button>
       </span>
     </el-dialog>
   </div>
@@ -160,30 +172,73 @@ export default {
       // 添加用户的表单验证
       addFormRules: {
         username: [
-          { required: true, message: '请输入用户名', trigger: ['blur', 'change'] },
-          { min: 3, max: 12, message: '长度在 3 到 12 个字符', trigger: ['blur', 'change'] }
+          {
+            required: true,
+            message: '请输入用户名',
+            trigger: ['blur', 'change']
+          },
+          {
+            min: 3,
+            max: 12,
+            message: '长度在 3 到 12 个字符',
+            trigger: ['blur', 'change']
+          }
         ],
         password: [
-          { required: true, message: '请输入密码', trigger: ['blur', 'change'] },
-          { min: 3, max: 12, message: '长度在 3 到 12 个字符', trigger: ['blur', 'change'] }
+          {
+            required: true,
+            message: '请输入密码',
+            trigger: ['blur', 'change']
+          },
+          {
+            min: 3,
+            max: 12,
+            message: '长度在 3 到 12 个字符',
+            trigger: ['blur', 'change']
+          }
         ],
         email: [
-          { type: 'email', message: '请输入正确的邮箱', trigger: ['blur', 'change'] }
+          {
+            type: 'email',
+            message: '请输入正确的邮箱',
+            trigger: ['blur', 'change']
+          }
         ],
         mobile: [
-          { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: ['blur', 'change'] }
+          {
+            pattern: /^1[3-9]\d{9}$/,
+            message: '请输入正确的手机号',
+            trigger: ['blur', 'change']
+          }
         ]
       },
       editForm: {},
       // 添加用户的表单验证
       editFormRules: {
         email: [
-          { required: true, type: 'email', message: '请输入正确的邮箱', trigger: ['blur', 'change'] }
+          {
+            required: true,
+            type: 'email',
+            message: '请输入正确的邮箱',
+            trigger: ['blur', 'change']
+          }
         ],
         mobile: [
-          { required: true, pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: ['blur', 'change'] }
+          {
+            required: true,
+            pattern: /^1[3-9]\d{9}$/,
+            message: '请输入正确的手机号',
+            trigger: ['blur', 'change']
+          }
         ]
-      }
+      },
+      roleDialogVisible: false,
+      // 需要被分配角色的用户信息
+      userInfo: {},
+      // 所有角色数据的列表
+      rolesList: [],
+      // 已选中的角色id值
+      selectedRoleId: ''
     }
   },
   created() {
@@ -243,7 +298,17 @@ export default {
       this.queryInfo.pagenum = 1
       this.getUserList()
     },
-    showAssignDialog() {},
+    async showRoleDialog(row) {
+      this.userInfo = row
+      const { data: res } = await this.$axios.get('roles')
+      console.log(res)
+      if (res.meta.status === 200) {
+        this.rolesList = res.data
+      } else {
+        this.$message.error(res.meta.msg)
+      }
+      this.roleDialogVisible = true
+    },
     // 监听pagesize改变的事件
     handleSizeChange(newSize) {
       this.queryInfo.pagesize = newSize
@@ -273,7 +338,9 @@ export default {
           this.$message.success(res.meta.msg)
           this.addDialogVisible = false
           this.total++
-          this.queryInfo.pagenum = Math.ceil(this.total / this.queryInfo.pagesize)
+          this.queryInfo.pagenum = Math.ceil(
+            this.total / this.queryInfo.pagesize
+          )
           this.getUserList()
         } else {
           this.$message.error(res.meta.msg)
@@ -286,11 +353,13 @@ export default {
     async editUserInfo() {
       try {
         await this.$refs.editFormRef.validate()
-        console.log(this.editForm)
-        const { data: res } = await this.$axios.put(`users/${this.editForm.id}`, {
-          email: this.editForm.email,
-          mobile: this.editForm.mobile
-        })
+        const { data: res } = await this.$axios.put(
+          `users/${this.editForm.id}`,
+          {
+            email: this.editForm.email,
+            mobile: this.editForm.mobile
+          }
+        )
         if (res.meta.status === 200) {
           this.$message.success(res.meta.msg)
           this.editDialogVisible = false
@@ -301,10 +370,33 @@ export default {
       } catch (e) {
         console.log(e)
       }
+    },
+    // 点击按钮分配角色
+    async rolesInfo() {
+      if (!this.selectedRoleId) {
+        return this.$message.error('请选择要分配的角色！')
+      }
+      const { data: res } = await this.$axios.put(`users/${this.userInfo.id}/role`, {
+        rid: this.selectedRoleId
+      })
+      if (res.meta.status === 200) {
+        this.$message.success(res.meta.msg)
+        this.roleDialogVisible = false
+        this.getUserList()
+      } else {
+        this.$message.error(res.meta.msg)
+      }
+    },
+    roleDialogClosed() {
+      this.selectedRoleId = ''
+      this.userInfo = {}
     }
   }
 }
 </script>
 
 <style lang="scss" scoped>
+.mgBottom{
+  margin-bottom: 16px;
+}
 </style>
